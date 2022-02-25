@@ -53,13 +53,13 @@ const userLogin = async (req, res) => {
   try {
     const { email, password } = req.body;
     if (!email) {
-      res.status(400).send("email input is required");
+      throw new Error("email input is required");
     }
     if (!password) {
-      res.status(400).send("email input is required");
+      throw new Error("email input is required");
     }
-    const user = await Model.UserData.findOne({ email });
-    if (await Model.UserData.findOne({ email: req.body.email })) {
+
+    if ((user = await Model.UserData.findOne({ email }))) {
       // Create token
       const token = jwt.sign(
         { user_id: user._id, email },
@@ -69,21 +69,21 @@ const userLogin = async (req, res) => {
         }
       );
       user.token = token;
-      res.status(200).json(user);
+      res.status(200).json(token);
     }
     res.status(400).send("Invalid Credentials");
   } catch (err) {
-    console.log(err);
+    res.send(err.message);
   }
 };
 
 //Get Method for user.
 const getUserData = async (req, res) => {
   try {
-    const getUser = await Model.UserData.find({}).sort({ _id: 1 });
-    res.send(getUser);
-  } catch (error) {
-    res.status(400).send(error);
+    const getUser = await Model.UserData.find({});
+    res.status(201).send(getUser);
+  } catch (e) {
+    res.status(400).send(e);
   }
 };
 
@@ -93,7 +93,7 @@ const deleteUserData = async (req, res) => {
     const getUser = await Model.AddressSchema.findByIdAndDelete(req.params._id);
     res.send(getUser);
   } catch (error) {
-    response.status(500).send(error);
+    res.status(400).send(error);
   }
 };
 
@@ -107,8 +107,6 @@ const userDataAndAddress = async (req, res, next) => {
     });
   });
 };
-var ObjectID = require("mongodb").ObjectID;
-const { response } = require("express");
 
 const userAddress = async (req, res) => {
   try {

@@ -34,6 +34,9 @@ const userSchema = new mongoose.Schema({
     type: String,
     unique: true,
   },
+  token: {
+    type: String,
+  },
   address: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "UserAddress",
