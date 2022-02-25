@@ -14,6 +14,10 @@ const userSchema = new mongoose.Schema({
     required: true,
     trim: true,
   },
+  user_name: {
+    type: String,
+    require: true,
+  },
   password: {
     type: String,
     required: true,
@@ -30,13 +34,10 @@ const userSchema = new mongoose.Schema({
     type: String,
     unique: true,
   },
-  token: {
-    type: String,
-  },
   address: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "UserAddress",
   },
 });
-const UserData = new mongoose.model("User-Que3", userSchema);
+const UserData = new mongoose.model("User", userSchema);
 module.exports = UserData;

@@ -1,5 +1,4 @@
-const AddressSchema = require("../model/AddressSchema");
-const UserData = require("../model/user_Schema");
+const Model = require("../model/index");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 
@@ -13,46 +12,21 @@ const userRegister = async (req, res) => {
       password,
       confirm_password,
     } = req.body;
+    console.log(req.body);
 
-    const emailRegexp =
-      /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
-
-    if (emailRegexp.test(email) == false) {
-      throw new Error("email is not valid");
-    }
-
-    if (password !== confirm_password) {
-      throw new Error("password is not matching");
-    }
-    if (!email) {
-      throw new Error("email is required");
-    }
-    if (!first_name) {
-      throw new Error("first_name is required");
-    }
-    if (!password) {
-      throw new Error("password is required");
-    }
-    if (!last_name) {
-      throw new Error("last_name is required");
-    }
-    if (!user_name) {
-      throw new Error("user_name is required");
-    }
-    if (!(email && password && first_name && last_name && user_name)) {
-      throw new Error("All input is required");
-    }
-    const oldUser = await UserData.findOne({ email });
+    const oldUser = await Model.UserData.findOne({ email });
     if (oldUser) {
       return res.status(409).send("User Already Exist. Please Login");
     }
-    encryptedPassword = await bcrypt.hash(password, 10);
-    const user = await UserData.create({
+    const encryptedPassword = await bcrypt.hash(password, 10);
+    const user = await Model.UserData.create({
       first_name,
       last_name,
+      user_name,
       email: email.toLowerCase(), // sanitize: convert email to lowercase
       password: encryptedPassword,
     });
+
     const token = jwt.sign(
       { user_id: user._id, email },
       process.env.TOKEN_KEY,
@@ -78,11 +52,14 @@ const userRegister = async (req, res) => {
 const userLogin = async (req, res) => {
   try {
     const { email, password } = req.body;
-    if (!(email && password)) {
-      res.status(400).send("All input is required");
+    if (!email) {
+      res.status(400).send("email input is required");
     }
-    const user = await UserData.findOne({ email });
-    if (await UserData.findOne({ email: req.body.email })) {
+    if (!password) {
+      res.status(400).send("email input is required");
+    }
+    const user = await Model.UserData.findOne({ email });
+    if (await Model.UserData.findOne({ email: req.body.email })) {
       // Create token
       const token = jwt.sign(
         { user_id: user._id, email },
@@ -103,7 +80,7 @@ const userLogin = async (req, res) => {
 //Get Method for user.
 const getUserData = async (req, res) => {
   try {
-    const getUser = await UserData.find({}).sort({ id: 1 });
+    const getUser = await Model.UserData.find({}).sort({ _id: 1 });
     res.send(getUser);
   } catch (error) {
     res.status(400).send(error);
@@ -113,7 +90,7 @@ const getUserData = async (req, res) => {
 //delete operation for user data
 const deleteUserData = async (req, res) => {
   try {
-    const getUser = await AddressSchema.findByIdAndDelete(req.params.id);
+    const getUser = await Model.AddressSchema.findByIdAndDelete(req.params._id);
     res.send(getUser);
   } catch (error) {
     response.status(500).send(error);
@@ -122,7 +99,7 @@ const deleteUserData = async (req, res) => {
 
 //Here we are  getting user and address Data with both using populate.
 const userDataAndAddress = async (req, res, next) => {
-  const data = await UserData.find().populate("address");
+  const data = await Model.UserData.find().populate("address");
 
   res.send(data).catch((err) => {
     res.status(500).json({
@@ -135,12 +112,12 @@ const { response } = require("express");
 
 const userAddress = async (req, res) => {
   try {
-    const data = await UserData.find().populate("address");
+    const data = await Model.UserData.find().populate("address");
     const { user_id, address, city, state, mobile_no, pin } = req.body;
-    const addressInfo = new AddressSchema(req.body);
+    const addressInfo = new Model.AddressSchema(req.body);
 
     // in curlybrace we will  assecc user_id after that address id
-    const userData = await UserData.findOneAndUpdate(
+    const userData = await Model.UserData.findOneAndUpdate(
       { _id: ObjectID(user_id) },
       { address: addressInfo._id }
     );

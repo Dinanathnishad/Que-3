@@ -6,7 +6,6 @@ const userRouter = require("./routes/users");
 
 const { API_PORT } = process.env;
 const port = process.env.PORT || API_PORT;
-// const port = 9000;
 const app = express();
 
 app.use(express.json());
